@@ -1,28 +1,34 @@
-##!/usr/bin/python -tt
+#!/usr/bin/env python -tt
+# -*- coding: utf-8 -*-
 
 ## Importa as bibliotecas que serao usadas no programa
-import sys
-import os
-import platform
-import commands
-import subprocess
+import sys,os,platform,commands,subprocess
 from odf.opendocument import OpenDocumentText
 from odf.style import Style, TextProperties, ParagraphProperties, TableColumnProperties
 from odf.text import H, P, Span
 from odf.table import Table, TableColumn, TableRow, TableCell
+from odf.draw  import Page, Frame, TextBox, Image
+##from PIL import Image
 
 def extrai(diretorio):
+## cria listas para armazenar conteudo e armazenar conteudo, alem de
+    ## iniciar variaveis, incluindo a que define as extensoes de imagem
     pastas = []
     metadados = []
     sistema = platform.system()
     extensions = ['.jpeg', '.jpg', '.jpe', '.tga', '.gif', '.tif', '.bmp', '.rle', '.pcx', '.png', '.mac', '.pnt', '.pntg', '.pct', '.pic', '.pict', '.qti', '.qtif']
+
+    ## procura todas as pastas dentro do diretorio especificado
     for caminho, files, docs in os.walk(diretorio):
         pastas.append(caminho)
+
+    ## varre cada pasta em busca de arquivos
     for elemento in pastas:
         arquivos = os.listdir(elemento)
         for arquivo in arquivos:
             tipo = os.path.splitext(arquivo)
-            if tipo[1] in extensions:
+            if tipo[1] in extensions: ## se for arquivo de imagem
+                ## roda comandos diferentes em linux e windows
                 if sistema == "Linux":
                     cmd = 'python exif.py "' + elemento + '/' + arquivo + '"'
                     (status, texto) = commands.getstatusoutput(cmd)
@@ -35,7 +41,9 @@ def extrai(diretorio):
                 else:
                     print "Sistema nao suportado"
                     sys.exit(1)
+                ## coloca os metadados da imagem em uma lista
                 metadados.append(texto)
+    ## chama a funcao para gravar os metadados no documento odt
     escreve(metadados)
 
 def escreve(metadados):

@@ -1,4 +1,5 @@
-##!/usr/bin/python -tt
+#!/usr/bin/env python -tt
+# -*- coding: utf-8 -*-
 
 ## Importa as bibliotecas que serao usadas no programa
 import sys,os,platform,commands,subprocess
@@ -10,18 +11,24 @@ from odf.draw  import Page, Frame, TextBox, Image
 ##from PIL import Image
 
 def extrai(diretorio):
+    ## cria listas para armazenar conteudo e armazenar conteudo, alem de
+    ## iniciar variaveis, incluindo a que define as extensoes de imagem
     pastas = []
     metadados = []
     cont = 0
     sistema = platform.system()
     extensions = ['.jpeg', '.jpg', '.jpe', '.tga', '.gif', '.tif', '.bmp', '.rle', '.pcx', '.png', '.mac', '.pnt', '.pntg', '.pct', '.pic', '.pict', '.qti', '.qtif']
+
+    ## procura todas as pastas dentro do diretorio especificado
     for caminho, files, docs in os.walk(diretorio):
         pastas.append(caminho)
+    ## varre cada pasta em busca de arquivos
     for elemento in pastas:
         arquivos = os.listdir(elemento)
         for arquivo in arquivos:
             tipo = os.path.splitext(arquivo)
-            if tipo[1] in extensions:
+            if tipo[1] in extensions: ## se for arquivo de imagem
+                ## roda comandos diferentes em linux e windows
                 if sistema == "Linux":
                     cmd = 'python exif.py "' + elemento + '/' + arquivo + '"'
                     (status, texto) = commands.getstatusoutput(cmd)
@@ -38,7 +45,9 @@ def extrai(diretorio):
                 else:
                     print "Sistema nao suportado"
                     sys.exit(1)
+                ## coloca os metadados da imagem em uma lista
                 metadados.append(texto)
+    ## chama a funcao para gravar os metadados no documento odt
     escreve(metadados, diretorio)
 
 def escreve(metadados, diretorio):
@@ -80,14 +89,14 @@ def escreve(metadados, diretorio):
         tr.addElement(celula)
         
         ##teste de celula
-        ##p2 = []
-        photoframe = Frame(stylename=photostyle, width="128pt", height="128pt", x="336pt", y="56pt")
-        ##p2.append(P(stylename=tablecontents,text="teste"))
-        celula.addElement(photoframe)
-        caminho = linhas[0]
-        href = doc.addPicture(caminho[:-2])
-        print caminho[:-2]
-        photoframe.addElement(Image(href=href))
+        p2 = []
+        ##photoframe = Frame(stylename=photostyle, width="128pt", height="128pt", x="336pt", y="56pt")
+        p2.append(P(stylename=tablecontents,text="teste"))
+        ##celula.addElement(photoframe)
+        ##caminho = linhas[0]
+        ##href = doc.addPicture(caminho[:-1]
+        ##print caminho[:-1]
+        ##photoframe.addElement(Image(href=href))
         
         tc = TableCell()
         tr.addElement(tc)
