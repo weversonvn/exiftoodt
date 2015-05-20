@@ -1,7 +1,7 @@
 #!/usr/bin/env python -tt
 # -*- coding: utf-8 -*-
 
-## Importa as bibliotecas que serao usadas no programa
+## importa as bibliotecas que serao usadas no programa
 import sys,os,platform,commands,subprocess
 from odf.opendocument import OpenDocumentText
 from odf.style import Style, TextProperties, ParagraphProperties, TableColumnProperties
@@ -11,8 +11,8 @@ from odf.draw  import Page, Frame, TextBox, Image
 ##from PIL import Image
 
 def extrai(diretorio):
-## cria listas para armazenar conteudo e armazenar conteudo, alem de
-    ## iniciar variaveis, incluindo a que define as extensoes de imagem
+    ## cria listas para armazenar conteudo, alem de iniciar variaveis,
+    ## incluindo a que define as extensoes de imagem
     pastas = []
     metadados = []
     sistema = platform.system()

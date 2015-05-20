@@ -1,7 +1,7 @@
 #!/usr/bin/env python -tt
 # -*- coding: utf-8 -*-
 
-## Importa as bibliotecas que serao usadas no programa
+## importa as bibliotecas que serao usadas no programa
 import sys,os,platform,commands,subprocess
 from odf.opendocument import OpenDocumentText
 from odf.style import Style, TextProperties, ParagraphProperties, TableColumnProperties
@@ -10,18 +10,17 @@ from odf.table import Table, TableColumn, TableRow, TableCell
 from odf.draw  import Page, Frame, TextBox, Image
 ##from PIL import Image
 
-def extrai(diretorio):
-    ## cria listas para armazenar conteudo e armazenar conteudo, alem de
-    ## iniciar variaveis, incluindo a que define as extensoes de imagem
+def busca(diretorio):
+    ## cria listas para armazenar conteudo, alem de iniciar variaveis,
+    ## incluindo a que define as extensoes de imagem
     pastas = []
-    metadados = []
-    cont = 0
     sistema = platform.system()
     extensions = ['.jpeg', '.jpg', '.jpe', '.tga', '.gif', '.tif', '.bmp', '.rle', '.pcx', '.png', '.mac', '.pnt', '.pntg', '.pct', '.pic', '.pict', '.qti', '.qtif']
 
     ## procura todas as pastas dentro do diretorio especificado
     for caminho, files, docs in os.walk(diretorio):
         pastas.append(caminho)
+
     ## varre cada pasta em busca de arquivos
     for elemento in pastas:
         arquivos = os.listdir(elemento)
@@ -30,27 +29,52 @@ def extrai(diretorio):
             if tipo[1] in extensions: ## se for arquivo de imagem
                 ## roda comandos diferentes em linux e windows
                 if sistema == "Linux":
-                    cmd = 'python exif.py "' + elemento + '/' + arquivo + '"'
-                    (status, texto) = commands.getstatusoutput(cmd)
-                    if status:
-                        sys.stderr.write(texto)
-                        sys.exit(1)
-                    nome = "mini_" + str(cont) + ".jpg"
-                    cont = cont + 1
+                    extrailin(elemento, arquivo)
                 elif sistema == "Windows":
-                    cmd = 'python exif.py "' + elemento + '\\' + arquivo + '"'
-                    texto = subprocess.check_output(cmd)
-                    nome = "mini_" + str(cont) + ".jpg"
-                    cont = cont + 1
+                    extraiwin(elemento, arquivo)
                 else:
                     print "Sistema nao suportado"
                     sys.exit(1)
-                ## coloca os metadados da imagem em uma lista
-                metadados.append(texto)
-    ## chama a funcao para gravar os metadados no documento odt
-    escreve(metadados, diretorio)
 
-def escreve(metadados, diretorio):
+def extraiwin(elemento, arquivo):
+    cmd = 'python exif.py "' + elemento + '\\' + arquivo + '"'
+    print 'Processando arquivo: ' + elemento + '\\' + arquivo
+    texto = subprocess.check_output(cmd)
+    escreve(texto)
+
+def extrailin(elemento, arquivo):
+    cmd = 'python exif.py "' + elemento + '/' + arquivo + '"'
+    print 'Processando arquivo: ' + elemento + '/' + arquivo
+    (status, texto) = commands.getstatusoutput(cmd)
+    if status:
+        sys.stderr.write(texto)
+        sys.exit(1)
+    escreve(texto)
+
+def escreve(texto): 
+    linhas = texto.split('\n')
+    tr = TableRow()
+    table.addElement(tr)
+    celula = TableCell()
+    tr.addElement(celula)
+    tc = TableCell()
+    tr.addElement(tc)
+    p = []
+    num = 0
+    for linha in linhas:
+        p.append(P(stylename=tablecontents,text=""))
+        p[num].addText(linha)
+        tc.addElement(p[num])
+        num = num + 1
+
+def main():    
+    busca(sys.argv[1])
+
+    doc.text.addElement(table)
+    doc.save("testepython.odt")
+    print "Metadados gravados com sucesso no arquivo testepython.odt"
+
+if __name__ == '__main__':
     doc = OpenDocumentText()
 
     ## cria o estilo para o titulo do documento
@@ -60,6 +84,7 @@ def escreve(metadados, diretorio):
     s.addElement(h1style)
     h=H(outlinelevel=1, stylename=h1style, text="Arquivo de Metadados")
     doc.text.addElement(h)
+    global tablecontents
     tablecontents = Style(name="Table Contents", family="paragraph")
     tablecontents.addElement(ParagraphProperties(numberlines="false", linenumber="0"))
     s.addElement(tablecontents)
@@ -72,47 +97,10 @@ def escreve(metadados, diretorio):
     widthwide.addElement(TableColumnProperties(columnwidth="15cm"))
     doc.automaticstyles.addElement(widthwide)
 
-    # Style for the photo frame
-    photostyle = Style(name="MyMaster-photo", family="presentation")
-    doc.styles.addElement(photostyle)
-
     ## cria a tabela e especifica as colunas
+    global table
     table = Table()
     table.addElement(TableColumn(numbercolumnsrepeated=1,stylename=widthshort))
     table.addElement(TableColumn(numbercolumnsrepeated=1,stylename=widthwide))
-    
-    for imagem in metadados:
-        linhas = imagem.split('\n')
-        tr = TableRow()
-        table.addElement(tr)
-        celula = TableCell()
-        tr.addElement(celula)
-        
-        ##teste de celula
-        p2 = []
-        ##photoframe = Frame(stylename=photostyle, width="128pt", height="128pt", x="336pt", y="56pt")
-        p2.append(P(stylename=tablecontents,text="teste"))
-        ##celula.addElement(photoframe)
-        ##caminho = linhas[0]
-        ##href = doc.addPicture(caminho[:-1]
-        ##print caminho[:-1]
-        ##photoframe.addElement(Image(href=href))
-        
-        tc = TableCell()
-        tr.addElement(tc)
-        p = []
-        num = 0
-        for linha in linhas:
-            p.append(P(stylename=tablecontents,text=""))
-            p[num].addText(linha)
-            tc.addElement(p[num])
-            num = num + 1
-    doc.text.addElement(table)
-    doc.save("testepython.odt")
-    print "Metadados gravados com sucesso no arquivo testepython.odt"
 
-def main():
-    extrai(sys.argv[1])
-
-if __name__ == '__main__':
     main()
