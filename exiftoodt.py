@@ -20,6 +20,15 @@ if PIL_ok:
     from odf.table import Table, TableColumn, TableRow, TableCell
     from miniatura import mini
 
+## Don't throw an exception when given an out of range character.
+def make_string(seq):
+    str = ''
+    for c in seq:
+        ## inclue somente caracteres com codigo ASCII na faixa 32-127
+        if 32 <= ord(c) and ord(c) < 127:
+            str += c
+    return str
+    
 def busca(diretorio):
     ## cria listas para armazenar conteudo, alem de iniciar variaveis,
     ## incluindo a que define as extensoes de imagem
@@ -82,7 +91,8 @@ def escreve(texto):
     tc = TableCell()
     tr.addElement(tc)
     ## adiciona linha a linha os metadados
-    for linha in linhas:
+    for seq in linhas:
+        linha = make_string(seq) ## remove caracteres especiais do texto
         tc.addElement(P(stylename=tablecontents,text=linha))
 
 def main():
