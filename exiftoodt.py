@@ -47,6 +47,35 @@ def extrai(diretorio):
     escreve(metadados)
 
 def escreve(metadados):
+    
+    
+    for imagem in metadados:
+        linhas = imagem.split('\n')
+        tr = TableRow()
+        table.addElement(tr)
+        celula = TableCell()
+        tr.addElement(celula)
+        tc = TableCell()
+        tr.addElement(tc)
+        p = []
+        num = 0
+        for linha in linhas:
+            p.append(P(stylename=tablecontents,text=""))
+            p[num].addText(linha)
+            tc.addElement(p[num])
+            num = num + 1
+    doc.text.addElement(table)
+    doc.save("testepython.odt")
+    print "Metadados gravados com sucesso no arquivo testepython.odt"
+
+def main():
+    try:
+        caminho = sys.argv[1]
+    except:
+        caminho = raw_input("Insira o caminho da pasta a ser processada: ")
+    busca(caminho)
+
+if __name__ == '__main__':
     doc = OpenDocumentText()
 
     ## cria o estilo para o titulo do documento
@@ -73,27 +102,4 @@ def escreve(metadados):
     table.addElement(TableColumn(numbercolumnsrepeated=1,stylename=widthshort))
     table.addElement(TableColumn(numbercolumnsrepeated=1,stylename=widthwide))
     
-    for imagem in metadados:
-        linhas = imagem.split('\n')
-        tr = TableRow()
-        table.addElement(tr)
-        celula = TableCell()
-        tr.addElement(celula)
-        tc = TableCell()
-        tr.addElement(tc)
-        p = []
-        num = 0
-        for linha in linhas:
-            p.append(P(stylename=tablecontents,text=""))
-            p[num].addText(linha)
-            tc.addElement(p[num])
-            num = num + 1
-    doc.text.addElement(table)
-    doc.save("testepython.odt")
-    print "Metadados gravados com sucesso no arquivo testepython.odt"
-
-def main():
-    extrai(sys.argv[1])
-
-if __name__ == '__main__':
     main()
