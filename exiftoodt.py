@@ -20,7 +20,7 @@ if PIL_ok:
     from odf.table import Table, TableColumn, TableRow, TableCell
     from miniatura import mini
 
-def extrai(diretorio):
+def busca(diretorio):
     ## cria listas para armazenar conteudo, alem de iniciar variaveis,
     ## incluindo a que define as extensoes de imagem
     pastas = []
