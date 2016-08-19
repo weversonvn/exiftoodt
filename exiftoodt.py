@@ -1,23 +1,37 @@
 #!/usr/bin/env python -tt
 # -*- coding: utf-8 -*-
 
-## importa as bibliotecas que serao usadas no programa
-import sys,os,platform,commands,subprocess
-from odf.opendocument import OpenDocumentText
-from odf.style import Style, TextProperties, ParagraphProperties, TableColumnProperties
-from odf.text import H, P, Span
-from odf.table import Table, TableColumn, TableRow, TableCell
-from odf.draw  import Page, Frame, TextBox, Image
-##from PIL import Image
+## verifica a presenca ou nao da PIL instalada
+try:
+    from PIL import Image
+    PIL_ok = True
+except:
+    PIL_ok = False
+    print "PIL nao detectada. Instale a Python Imaging Library"
+    sys.exit(1)
+    
+if PIL_ok:
+    ## importa as bibliotecas que serao usadas no programa
+    import sys,os,platform,commands,subprocess
+    from odf.opendocument import OpenDocumentText
+    from odf.text import H, P, Span
+    from odf.table import Table, TableColumn, TableRow, TableCell
+    from miniatura import mini
 
 def extrai(diretorio):
     ## cria listas para armazenar conteudo, alem de iniciar variaveis,
     ## incluindo a que define as extensoes de imagem
     pastas = []
-    metadados = []
-    sistema = platform.system()
+    sistema = platform.system() ## detecta o sistema em uso
     extensions = ['.jpeg', '.jpg', '.jpe', '.tga', '.gif', '.tif', '.bmp', '.rle', '.pcx', '.png', '.mac', '.pnt', '.pntg', '.pct', '.pic', '.pict', '.qti', '.qtif']
-
+    
+    ## tenta criar o diretorio 'mini' para armazenar as miniatura
+    ## o comando so eh executado caso a pasta nao exista
+    try:
+        os.mkdir ('mini')
+    except:
+        pass
+    
     ## procura todas as pastas dentro do diretorio especificado
     for caminho, files, docs in os.walk(diretorio):
         pastas.append(caminho)
@@ -30,43 +44,52 @@ def extrai(diretorio):
             if tipo[1] in extensions: ## se for arquivo de imagem
                 ## roda comandos diferentes em linux e windows
                 if sistema == "Linux":
-                    cmd = 'python exif.py "' + elemento + '/' + arquivo + '"'
-                    (status, texto) = commands.getstatusoutput(cmd)
-                    if status:
-                        sys.stderr.write(texto)
-                        sys.exit(1)
+                    mini(elemento + '/', arquivo) ## chama a funcao para criar a miniatura
+                    extrailin(elemento, arquivo) ## chama a funcao para extrair os metadados
                 elif sistema == "Windows":
-                    cmd = 'python exif.py "' + elemento + '\\' + arquivo + '"'
-                    texto = subprocess.check_output(cmd)
+                    mini(elemento + '\\', arquivo)
+                    extraiwin(elemento, arquivo)
                 else:
                     print "Sistema nao suportado"
                     sys.exit(1)
-                ## coloca os metadados da imagem em uma lista
-                metadados.append(texto)
-    ## chama a funcao para gravar os metadados no documento odt
-    escreve(metadados)
 
-def escreve(metadados):
-    
-    
-    for imagem in metadados:
-        linhas = imagem.split('\n')
-        tr = TableRow()
-        table.addElement(tr)
-        celula = TableCell()
-        tr.addElement(celula)
-        tc = TableCell()
-        tr.addElement(tc)
-        p = []
-        num = 0
-        for linha in linhas:
-            p.append(P(stylename=tablecontents,text=""))
-            p[num].addText(linha)
-            tc.addElement(p[num])
-            num = num + 1
-    doc.text.addElement(table)
-    doc.save("testepython.odt")
-    print "Metadados gravados com sucesso no arquivo testepython.odt"
+def extraiwin(elemento, arquivo):
+    cmd = 'python exif.py "' + elemento + '\\' + arquivo + '"'
+    print 'Processando arquivo: ' + elemento + '\\' + arquivo
+    texto = subprocess.check_output(cmd)
+    escreve(texto)
+
+def extrailin(elemento, arquivo):
+    cmd = 'python exif.py "' + elemento + '/' + arquivo + '"'
+    print 'Processando arquivo: ' + elemento + '/' + arquivo
+    (status, texto) = commands.getstatusoutput(cmd)
+    if status:
+        sys.stderr.write(texto)
+        sys.exit(1)
+    escreve(texto)
+
+def escreve(texto):
+    def escreve(texto):
+    linhas = texto.split('\n')
+    linhas = texto.split('\n') ## separa cada linha de texto dos metadados
+    ## cria uma linha da tabela
+    tr = TableRow()
+    table.addElement(tr)
+    ## cria a primeira coluna onde deve ficar a miniatura
+    celula = TableCell()
+    tr.addElement(celula)
+    ## cria a segunda coluna onde ficam os metadados em si
+    tc = TableCell()
+    tr.addElement(tc)
+    p = []
+    num = 0
+    ## adiciona linha a linha os metadados
+    for linha in linhas:
+        p.append(P(stylename=tablecontents,text=""))
+        p[num].addText(linha)
+        tc.addElement(p[num])
+        num = num + 1
+        tc.addElement(P(stylename=tablecontents,text=linha))
 
 def main():
     try:
@@ -74,6 +97,10 @@ def main():
     except:
         caminho = raw_input("Insira o caminho da pasta a ser processada: ")
     busca(caminho)
+    
+    doc.text.addElement(table)
+    doc.save("testepython.odt")
+    print "Metadados gravados com sucesso no arquivo testepython.odt"
 
 if __name__ == '__main__':
     doc = OpenDocumentText()
