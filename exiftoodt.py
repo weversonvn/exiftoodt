@@ -14,6 +14,8 @@ if PIL_ok:
     ## importa as bibliotecas que serao usadas no programa
     import sys,os,platform,commands,subprocess
     from odf.opendocument import OpenDocumentText
+    from odf.style import Style, TextProperties, ParagraphProperties, MasterPage, \
+    TableColumnProperties, PageLayout, PageLayoutProperties, GraphicProperties, DrawingPageProperties
     from odf.text import H, P, Span
     from odf.table import Table, TableColumn, TableRow, TableCell
     from miniatura import mini
@@ -69,8 +71,6 @@ def extrailin(elemento, arquivo):
     escreve(texto)
 
 def escreve(texto):
-    def escreve(texto):
-    linhas = texto.split('\n')
     linhas = texto.split('\n') ## separa cada linha de texto dos metadados
     ## cria uma linha da tabela
     tr = TableRow()
@@ -81,17 +81,12 @@ def escreve(texto):
     ## cria a segunda coluna onde ficam os metadados em si
     tc = TableCell()
     tr.addElement(tc)
-    p = []
-    num = 0
     ## adiciona linha a linha os metadados
     for linha in linhas:
-        p.append(P(stylename=tablecontents,text=""))
-        p[num].addText(linha)
-        tc.addElement(p[num])
-        num = num + 1
         tc.addElement(P(stylename=tablecontents,text=linha))
 
 def main():
+    nome = 'arquivo de metadados' ## nome do arquivo
     try:
         caminho = sys.argv[1]
     except:
@@ -99,8 +94,8 @@ def main():
     busca(caminho)
     
     doc.text.addElement(table)
-    doc.save("testepython.odt")
-    print "Metadados gravados com sucesso no arquivo testepython.odt"
+    doc.save(nome,True)
+    print "Metadados gravados com sucesso no arquivo \"" + nome + ".odt\""
 
 if __name__ == '__main__':
     doc = OpenDocumentText()
@@ -112,6 +107,7 @@ if __name__ == '__main__':
     s.addElement(h1style)
     h=H(outlinelevel=1, stylename=h1style, text="Arquivo de Metadados")
     doc.text.addElement(h)
+    global tablecontents
     tablecontents = Style(name="Table Contents", family="paragraph")
     tablecontents.addElement(ParagraphProperties(numberlines="false", linenumber="0"))
     s.addElement(tablecontents)
@@ -125,6 +121,7 @@ if __name__ == '__main__':
     doc.automaticstyles.addElement(widthwide)
 
     ## cria a tabela e especifica as colunas
+    global table
     table = Table()
     table.addElement(TableColumn(numbercolumnsrepeated=1,stylename=widthshort))
     table.addElement(TableColumn(numbercolumnsrepeated=1,stylename=widthwide))
